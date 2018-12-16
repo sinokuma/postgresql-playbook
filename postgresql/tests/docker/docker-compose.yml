@@ -1,0 +1,7 @@
+version: '3'
+services:
+  centos-ssh:
+    build: ./
+    ports:
+      - "10022:22"
+    privileged: true

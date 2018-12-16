@@ -1,0 +1,44 @@
+---
+# -----------------------------
+# Schemas
+# -----------------------------
+postgresql_schemas:
+  - { name: sample }
+
+# -----------------------------
+# Databases
+# -----------------------------
+postgresql_databases:
+  - { name: db01 }
+
+# -----------------------------
+# Database users
+# -----------------------------
+postgresql_users:
+  - { db: postgres, name: user01, password: user01password }
+
+# -----------------------------
+# Administrator user password
+# -----------------------------
+postgresql_administrator_user_password: adminuserpassword
+
+# -----------------------------
+# Override postgresql.conf
+# -----------------------------
+#------------------------------------------------------------------------------
+# WRITE-AHEAD LOG
+#------------------------------------------------------------------------------
+postgresql_archive_mode: on
+postgresql_archive_command: 'test ! -f /var/lib/pgsql/11/backups/pg_wal_archive/%f && cp %p /var/lib/pgsql/11/backups/pg_wal_archive/%f'
+
+#------------------------------------------------------------------------------
+# REPORTING AND LOGGING
+#------------------------------------------------------------------------------
+postgresql_log_line_prefix: '%t [%p]: [%l-1] user=%u, db=%d'  # if pg_logging_collector is "on", including %t and %p is recommended because timestamp and PID never record to log.
+
+# -----------------------------
+# Override pg_hba.conf
+# -----------------------------
+postgresql_hba_configurations:
+  - 'local   all             all                                     trust'
+  - 'local   replication     postgres                                trust'

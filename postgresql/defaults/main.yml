@@ -1,0 +1,188 @@
+---
+# ------------------------------------------------
+# PostgreSQL database cluster path
+# ------------------------------------------------
+postgresql_pgdata: /var/lib/pgsql/11/data/
+
+# ------------------------------------------------
+# PostgreSQL configuration file - postgresql.conf
+# ------------------------------------------------
+#------------------------------------------------------------------------------
+# CONNECTIONS AND AUTHENTICATION
+#------------------------------------------------------------------------------
+
+# - Connection Settings -
+postgresql_listen_addresses:
+  - localhost
+postgresql_port: 5432
+postgresql_max_connections: 100
+postgresql_superuser_reserved_connections: 3
+
+#------------------------------------------------------------------------------
+# RESOURCE USAGE (except WAL)
+#------------------------------------------------------------------------------
+
+# - Memory -
+postgresql_shared_buffers: 128MB        # 1/4 of the OS memory is recommended.
+postgresql_temp_buffers: 8MB
+postgresql_work_mem: 4MB
+postgresql_maintenance_work_mem: 64MB
+
+#------------------------------------------------------------------------------
+# WRITE-AHEAD LOG
+#------------------------------------------------------------------------------
+
+# - Settings -
+postgresql_wal_level: replica
+postgresql_wal_buffers: -1
+
+# - Checkpoints -
+postgresql_checkpoint_timeout: 5min
+postgresql_max_wal_size: 1GB
+postgresql_min_wal_size: 80MB
+
+# - Archiving -
+postgresql_archive_mode: off
+postgresql_archive_command: ''
+
+#------------------------------------------------------------------------------
+# REPLICATION
+#------------------------------------------------------------------------------
+
+# - Sending Servers -
+postgresql_max_wal_senders: 10
+postgresql_wal_keep_segments: 0
+postgresql_wal_sender_timeout: 60s
+postgresql_max_replication_slots: 10
+
+#------------------------------------------------------------------------------
+# QUERY TUNING
+#------------------------------------------------------------------------------
+
+# - Planner Method Configuration -
+postgresql_enable_partitionwise_join: off
+postgtesql_enable_partitionwise_aggregate: off
+postgresql_enable_parallel_hash: on
+postgresql_enable_partition_pruning: on
+
+#------------------------------------------------------------------------------
+# REPORTING AND LOGGING
+#------------------------------------------------------------------------------
+
+# - Where to Log -
+postgresql_log_destination: stderr
+postgresql_logging_collector: on
+postgresql_log_directory: log
+postgresql_log_filename: postgresql-%a.log
+postgresql_log_truncate_on_rotation: on
+postgresql_log_rotation_age: 1d
+postgresql_log_rotation_size: 0
+
+# - When to Log -
+postgresql_client_min_messages: notice
+postgresql_log_min_messages: warning
+postgresql_log_min_error_statement: error
+postgresql_log_min_duration_statement: -1
+
+# - What to Log -
+postgresql_log_checkpoints: off
+postgresql_log_connections: off
+postgresql_log_disconnections: off
+postgresql_log_line_prefix: '%m [%p] '
+postgresql_log_lock_waits: off
+postgresql_log_statement: none
+postgresql_log_temp_files: -1
+postgresql_log_timezone: UTC
+
+#------------------------------------------------------------------------------
+# STATISTICS
+#------------------------------------------------------------------------------
+
+# - Query and Index Statistics Collector -
+postgresql_track_functions: none
+
+#------------------------------------------------------------------------------
+# AUTOVACUUM
+#------------------------------------------------------------------------------
+postgresql_autovacuum: on
+postgresql_log_autovacuum_min_duration: -1
+postgresql_autovacuum_max_workers: 3
+postgresql_autovacuum_naptime: 1min
+postgresql_autovacuum_vacuum_threshold: 50
+postgresql_autovacuum_analyze_threshold: 50
+postgresql_autovacuum_vacuum_scale_factor: 0.2
+postgresql_autovacuum_analyze_scale_factor: 0.1
+postgresql_autovacuum_freeze_max_age: 200000000
+postgresql_autovacuum_multixact_freeze_max_age: 400000000
+postgresql_autovacuum_vacuum_cost_delay: 20ms
+postgresql_autovacuum_vacuum_cost_limit: -1
+
+#------------------------------------------------------------------------------
+# CLIENT CONNECTION DEFAULTS
+#------------------------------------------------------------------------------
+
+# - Statement Behavior -
+postgresql_search_path: '"$user", public'
+postgresql_statement_timeout: 0                     # disabled
+postgresql_lock_timeout: 0                          # disabled
+postgresql_idle_in_transaction_session_timeout: 0   # disabled
+postgresql_vacuum_freeze_min_age: 50000000
+postgresql_vacuum_freeze_table_age: 150000000
+postgresql_vacuum_multixact_freeze_min_age: 5000000
+postgresql_vacuum_multixact_freeze_table_age: 150000000
+postgresql_vacuum_cleanup_index_scale_factor: 0.1
+
+# - Locale and Formatting -
+postgresql_timezone: UTC
+postgresql_lc_messages: C
+postgresql_lc_monetary: C
+postgresql_lc_numeric: C
+postgresql_lc_time: C
+postgresql_default_text_search_config: 'pg_catalog.english'
+
+# - Shared Library Preloading -
+postgresql_shared_preload_libraries: ''
+postgresql_local_preload_libraries: ''
+postgresql_session_preload_libraries: ''
+
+#------------------------------------------------------------------------------
+# LOCK MANAGEMENT
+#------------------------------------------------------------------------------
+postgresql_deadlock_timeout: 1s
+postgresql_max_locks_per_transaction: 64        # min 10
+postgresql_max_pred_locks_per_transaction: 64   # min 10
+postgresql_max_pred_locks_per_relation: -2
+postgresql_max_pred_locks_per_page: 2   # min 0
+
+#------------------------------------------------------------------------------
+# VERSION AND PLATFORM COMPATIBILITY
+#------------------------------------------------------------------------------
+
+# - Previous PostgreSQL Versions -
+postgresql_array_nulls: on
+postgresql_backslash_quote: safe_encoding
+postgresql_default_with_oids: off
+postgresql_escape_string_warning: on
+postgresql_lo_compat_privileges: off
+postgresql_operator_precedence_warning: off
+postgresql_quote_all_identifiers: off
+postgresql_standard_conforming_strings: on
+postgresql_synchronize_seqscans: on
+
+# - Other Platforms and Clients -
+postgresql_transform_null_equals: off
+
+# ------------------------------------------------
+# PostgreSQL configuration file - pg_hba.conf
+# ------------------------------------------------
+postgresql_hba_configurations:
+# "local" is for Unix domain socket connections only
+ - 'local   all             all                                     peer'
+# IPv4 local connections:
+ - 'host    all             all             127.0.0.1/32            ident'
+# IPv6 local connections:
+ - 'host    all             all             ::1/128                 ident'
+# Allow replication connections from localhost, by a user with the replication privilege.
+ - 'local   replication     all                                     peer'
+ - 'host    replication     all             127.0.0.1/32            ident'
+ - 'host    replication     all             ::1/128                 ident'

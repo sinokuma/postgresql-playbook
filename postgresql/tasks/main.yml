@@ -1,0 +1,98 @@
+---
+- name: Add yum repository
+  yum:
+    name: https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-centos11-11-2.noarch.rpm
+    state: present
+
+- name: Install PostgreSQL
+  yum:
+    name:
+      - python-psycopg2
+      - postgresql11-server
+      - postgresql11-devel
+    state: present
+
+- name: Copy unit definition from templates
+  template:
+    src: postgresql-11.service.j2
+    dest: /etc/systemd/system/postgresql-11.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Run daemon-reload
+  systemd:
+    daemon_reload: yes
+    name: postgresql-11
+
+- name: Enable service
+  systemd:
+    name: postgresql-11
+    enabled: yes
+
+- name: Check whether a database cluster has already been created
+  stat: path={{ postgresql_pgdata }}/PG_VERSION
+  register: reg_pgdata
+  changed_when: false
+
+- name: Run initdb
+  command: /usr/pgsql-11/bin/postgresql-11-setup initdb
+  when: reg_pgdata.stat.exists == false
+
+- name: Copy configuration from templates
+  template: src={{ item.src }} dest={{ postgresql_pgdata }}/{{ item.src | regex_replace(".j2") }}
+  with_items:
+      - { src: "postgresql.conf.j2" }
+      - { src: "pg_hba.conf.j2" }
+  notify: Restart PostgreSQL
+
+- name: Start PostgreSQL
+  systemd:
+    name: postgresql-11
+    state: started
+
+- name: Create schema
+  become_user: postgres
+  postgresql_schema:
+    name: "{{ item.name }}"
+    owner: "{{ item.owner|default('postgres') }}"
+    port: "{{ postgresql_port }}"
+  with_items: "{{ postgresql_schemas }}"
+
+- name: Create database
+  become_user: postgres
+  postgresql_db:
+    name: "{{ item.name }}"
+    template: "{{ item.template|default('template1') }}"
+    lc_collate: "{{ item.lc_collate|default('C') }}"
+    lc_ctype: "{{ item.lc_ctype|default('C') }}"
+    port: "{{ postgresql_port }}"
+  with_items: "{{ postgresql_databases }}"
+
+- name: Set password to administrator user
+  become_user: postgres
+  postgresql_user:
+    name: postgres
+    password: "{{ postgresql_administrator_user_password }}"
+    encrypted: yes
+    port: "{{ postgresql_port }}"
+
+- name: Create user
+  become_user: postgres
+  postgresql_user:
+    db: "{{ item.db }}"
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    encrypted: yes
+    state: present
+    port: "{{ postgresql_port }}"
+  with_items: "{{ postgresql_users }}"
+
+- name: Create replication user
+  become_user: postgres
+  postgresql_user:
+    name: replication
+    role_attr_flags: REPLICATION
+    port: "{{ postgresql_port }}"
+
+- meta: flush_handlers
